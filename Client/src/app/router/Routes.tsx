@@ -8,6 +8,8 @@ import ContactPage from "../../features/contact/Contact";
 import TestErrorsPage from "../errors/TestErrors";
 import ServerError from "../errors/ServerError";
 import NotFound from "../errors/NotFound";
+import BasketPage from "../../features/basket/BasketPage";
+import CheckoutPage from "../../features/checkout/CheckoutPage";
 
 export const router = createBrowserRouter([{
     path: '/',
@@ -18,6 +20,8 @@ export const router = createBrowserRouter([{
         { path: 'products/:id', element: <ProductDetails/>},
         { path: 'about', element: <AboutPage/>},
         { path: 'contact', element: <ContactPage/>},
+        { path: 'basket', element: <BasketPage/>},
+        { path: 'checkout', element: <CheckoutPage/>},
         { path: 'errors', element: <TestErrorsPage/>},
         { path: 'server-error', element: <ServerError/>},
         { path: 'not-found', element: <NotFound/>},

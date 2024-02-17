@@ -2,12 +2,28 @@ import { Button, Card, CardActions, CardContent, CardMedia, Typography } from "@
 import { Product } from "../../../app/modules/interfaces/Product";
 import ProductCardHeader from "./ProductCardHeader";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import agent from "../../../app/api/Agent";
+import { LoadingButton } from "@mui/lab";
+import { useStoreContext } from "../../../app/context/StoreContext";
+import { formatCurrency } from "../../../app/util/util";
 
 export interface IProductCard {
     product: Product
 }
 
 const ProductCard: React.FC<IProductCard> = (props) => {
+    const [loading, setLoading] = useState(false);
+    const { setBasket } = useStoreContext();
+
+    function handleAddItem(productId: number) {
+        setLoading(true);
+        agent.Basket.addItem(productId)
+        .then(basket => setBasket(basket))
+        .catch(error => console.log(error))
+        .finally(() => setLoading(false));
+    }
+
     return (
         <Card>
             <ProductCardHeader name={props.product.name}/>
@@ -18,14 +34,19 @@ const ProductCard: React.FC<IProductCard> = (props) => {
             />
             <CardContent>
                 <Typography gutterBottom color='secondary' variant="h5">
-                    ${(props.product.price / 100).toFixed(2)}
+                    {formatCurrency(props.product.price)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                     {props.product.brand} / {props.product.description}
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Add To Cart</Button>
+                <LoadingButton 
+                    loading={loading} 
+                    onClick={() => handleAddItem(props.product.id)} 
+                    size="small">
+                        Add To Cart
+                </LoadingButton>
                 <Button component={Link} to={`/products/${props.product.id}`} size="small"  >View</Button>
             </CardActions>
         </Card>

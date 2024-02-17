@@ -1,11 +1,12 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { BASE_URL, BUGGY_ENDPOINTS, PRODUCTS_ENDPOINTS } from "../modules/constants/endpoints";
 import { toast } from "react-toastify";
-import { router } from "../router/Router";
+import { router } from "../router/Routes";
 
 const sleep = () => new Promise(resolve => setTimeout(resolve, 1000));
 
 axios.defaults.baseURL = BASE_URL;
+axios.defaults.withCredentials = true;
 
 axios.interceptors.response.use(async (response) => {
     await sleep();
@@ -32,9 +33,7 @@ axios.interceptors.response.use(async (response) => {
             break;
         case 500:
             router.navigate('/server-error', {state: {error: data}});
-            break;
-            
-            
+            break;            
         default: 
             break;
     }
@@ -64,9 +63,16 @@ const TestErrors = {
     getValidationError: () => requests.get(`${BUGGY_ENDPOINTS.BUGGY}/${BUGGY_ENDPOINTS.VALIDATION_ERROR}`),
 }
 
+const Basket = {
+    get: () => requests.get('basket'),
+    addItem: (productId: number, quantity = 1) => requests.post(`basket?productId=${productId}&quantity=${quantity}`, {}),
+    removeItem: (productId: number, quantity = 1) => requests.delete(`basket?productId=${productId}&quantity=${quantity}`),
+}
+
 const agent = {
     Catalog,
-    TestErrors
+    TestErrors,
+    Basket
 }
 
 export default agent;
