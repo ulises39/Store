@@ -3,14 +3,15 @@ import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import { useStoreContext } from "../context/StoreContext";
-import Header from "./Header";
-import { getCookie } from "../util/util";
+import { setBasket } from "../../features/basket/BasketSlice";
 import agent from "../api/Agent";
+import { useAppDispatch } from "../store/configureStore";
+import { getCookie } from "../util/util";
+import Header from "./Header";
 import Loading from "./Loading";
 
 function App() {
-  const { setBasket } = useStoreContext();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const paletteType = darkMode ? 'dark' : 'light';
@@ -30,11 +31,11 @@ function App() {
     if(!buyerId) setLoading(false);
     
     agent.Basket.get()
-      .then(basket => setBasket(basket))
+      .then(basket => dispatch(setBasket(basket)))
       .catch(error => console.log(error))
       .finally(() => setLoading(false));
     
-  }, [setBasket]);
+  }, [dispatch]);
 
   function handleThemeChange(){
     setDarkMode(!darkMode);

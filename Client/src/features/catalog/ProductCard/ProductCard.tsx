@@ -1,29 +1,21 @@
-import { Button, Card, CardActions, CardContent, CardMedia, Typography } from "@mui/material";
-import { Product } from "../../../app/modules/interfaces/Product";
-import ProductCardHeader from "./ProductCardHeader";
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import agent from "../../../app/api/Agent";
 import { LoadingButton } from "@mui/lab";
-import { useStoreContext } from "../../../app/context/StoreContext";
+import { Button, Card, CardActions, CardContent, CardMedia, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
+import { Product } from "../../../app/modules/interfaces/Product";
+import { useAppDispatch, useAppSelector } from "../../../app/store/configureStore";
 import { formatCurrency } from "../../../app/util/util";
+import { addBasketItemAsync } from "../../basket/BasketSlice";
+import { BASKET_STATES } from "../../basket/BasketStates";
+import ProductCardHeader from "./ProductCardHeader";
 
 export interface IProductCard {
     product: Product
 }
 
 const ProductCard: React.FC<IProductCard> = (props) => {
-    const [loading, setLoading] = useState(false);
-    const { setBasket } = useStoreContext();
-
-    function handleAddItem(productId: number) {
-        setLoading(true);
-        agent.Basket.addItem(productId)
-        .then(basket => setBasket(basket))
-        .catch(error => console.log(error))
-        .finally(() => setLoading(false));
-    }
-
+    const { status } = useAppSelector(state => state.basket);
+    const dispatch = useAppDispatch();
+    
     return (
         <Card>
             <ProductCardHeader name={props.product.name}/>
@@ -41,9 +33,9 @@ const ProductCard: React.FC<IProductCard> = (props) => {
                 </Typography>
             </CardContent>
             <CardActions>
-                <LoadingButton 
-                    loading={loading} 
-                    onClick={() => handleAddItem(props.product.id)} 
+                <LoadingButton
+                    loading={status.includes(`${BASKET_STATES.Pending}-${props.product.id}`)} 
+                    onClick={() => dispatch(addBasketItemAsync({productId:  props.product.id}))} 
                     size="small">
                         Add To Cart
                 </LoadingButton>

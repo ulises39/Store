@@ -14,7 +14,7 @@ export function useStoreContext() {
     const context = useContext(StoreContext);
 
     if (context === undefined) {
-        throw Error("Store Context must be used withing a Store Provider");
+        throw Error("Store Context must be used within a Store Provider");
     }
 
     return context;

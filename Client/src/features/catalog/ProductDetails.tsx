@@ -3,21 +3,28 @@ import { Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, T
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import agent from '../../app/api/Agent';
-import { useStoreContext } from '../../app/context/StoreContext';
 import NotFound from '../../app/errors/NotFound';
 import Loading from '../../app/layout/Loading';
-import { Product } from '../../app/modules/interfaces/Product';
+import { useAppDispatch, useAppSelector } from '../../app/store/configureStore';
 import { formatCurrency } from '../../app/util/util';
+import { addBasketItemAsync, removeBasketItemAsync } from '../basket/BasketSlice';
+import { BASKET_STATES } from '../basket/BasketStates';
+import { fetchSingleProductAsync, productsSelectors } from './CatalogSlice';
+import { CATALOG_STATES } from './CatalogStates';
 
 const ProductDetails: React.FC = () => {
-    const { basket, setBasket, removeItem } = useStoreContext();
+    const { basket, status } = useAppSelector(state => state.basket);
+    const dispatch = useAppDispatch();
     const { id } = useParams<{ id: string }>();
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
+    const product = useAppSelector(state => productsSelectors.selectById(state, parseInt(id!)));
+    const { status: productStatus } = useAppSelector(state => state.catalog);
     const [quantity, setQuantity] = useState(0);
-    const [submitting, setSubmitting] = useState(false);
-
     const item = basket?.items.find(i => i.productId === product?.id);
+
+    useEffect(() => {
+        if (item) setQuantity(item.quantity);
+        if(!product && id) dispatch(fetchSingleProductAsync(parseInt(id)));
+    }, [dispatch, id, item, product]);
 
     function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
         const quantity = parseInt(event.currentTarget.value);
@@ -27,33 +34,23 @@ const ProductDetails: React.FC = () => {
     const handleUpdateCart = async () => {
         try {
             if(!product) return 
-            setSubmitting(true);
             if(!item || quantity > item.quantity ) {
-                const updatedQuantity = item ? quantity - item.quantity : quantity;                
-                const updatedBasket = await agent.Basket.addItem(product.id, updatedQuantity);
-                setBasket(updatedBasket);
+                const updatedQuantity = item ? quantity - item.quantity : quantity;
+                dispatch(addBasketItemAsync({ productId: product.id, quantity: updatedQuantity } ));
             }else{
                 const updatedQuantity = item.quantity - quantity;
                 await agent.Basket.removeItem(product.id, updatedQuantity);
-                removeItem(product.id, updatedQuantity);
+                dispatch(removeBasketItemAsync({
+                    productId: product.id,
+                    quantity: updatedQuantity
+                }));
             }
-            setSubmitting(false);
         } catch (error) {
             console.log(error);            
         }
-    }
+    }    
 
-    useEffect(() => {
-
-        if (item) setQuantity(item.quantity);
-
-        id && agent.Catalog.details(parseInt(id))
-            .then(response => setProduct(response))
-            .catch(error => console.log(error))
-            .finally(() => setLoading(false))
-    }, [id, item]);
-
-    if (loading) return <Loading message='Loading product...'/>
+    if (productStatus === CATALOG_STATES.PendingFetchSingleProduct) return <Loading message='Loading product...'/>
 
     if (!product) return <NotFound/>
 
@@ -106,8 +103,8 @@ const ProductDetails: React.FC = () => {
                     <Grid item xs={6}>
                         <LoadingButton 
                             disabled={item?.quantity === quantity || !item && quantity === 0}
-                            loading={submitting} 
-                            onClick={handleUpdateCart} 
+                            loading={ status.includes(BASKET_STATES.Pending) }
+                            onClick={handleUpdateCart}
                             sx={{height: '55px'}} 
                             color='primary' 
                             size='large' 
