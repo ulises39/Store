@@ -3,4 +3,5 @@ export enum CATALOG_STATES {
     Pending = 'pending',
     PendingFetchProducts = 'pendingFetchProducts',
     PendingFetchSingleProduct = 'pendingFetchSingleProduct',
+    PendingFetchFilters = 'pendingFetchFilters',
 }

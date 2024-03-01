@@ -2,6 +2,7 @@ export const BASE_URL = "http://localhost:5000/api/";
 
 export enum PRODUCTS_ENDPOINTS {
     "PRODUCTS" = "products",
+    "FILTERS" = "filters",
 }
 
 export enum BUGGY_ENDPOINTS {
